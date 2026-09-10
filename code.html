@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OlegKusaep1 | Steam Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .game-card { transition: 0.4s; }
+        .game-card:hover { transform: translateY(-10px); border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+        #canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="max-w-6xl mx-auto px-6 py-16 relative z-10">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <h1 class="text-7xl font-black mb-4 tracking-tighter uppercase text-white">OlegKusaep1</h1>
+            <p class="text-blue-400 text-xl font-light">Премиальный доступ к библиотеке 55+ игр Steam</p>
+            <a href="https://funpay.com/users/12954900/" target="_blank" class="mt-8 inline-block px-10 py-4 bg-blue-600 rounded-full font-bold hover:scale-105 transition">АРЕНДОВАТЬ НА FUNPAY</a>
+        </div>
+
+        <!-- Service Description -->
+        <div class="max-w-4xl mx-auto glass p-8 rounded-3xl mb-12 text-center border border-blue-500/20">
+            <h2 class="text-2xl font-bold mb-4 text-blue-400">Почему выбирают нас?</h2>
+            <p class="text-gray-400 leading-relaxed">
+                OlegKusaep1 — это ваш прямой путь к лучшим играм индустрии. Мы предоставляем безопасную аренду аккаунтов с доступом к более чем 55 лицензионным проектам. Автоматическая выдача, полное сопровождение сделки и честные условия — играйте в то, что нравится, без переплат.
+            </p>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="max-w-4xl mx-auto mb-16">
+            <h3 class="text-xl font-bold mb-6 text-white text-center">Часто задаваемые вопросы (FAQ)</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass p-6 rounded-2xl">
+                    <h4 class="font-bold text-blue-400 mb-2">Как получить аккаунт?</h4>
+                    <p class="text-sm text-gray-400">Данные приходят автоматически в чат FunPay сразу после подтверждения оплаты сделки.</p>
+                </div>
+                <div class="glass p-6 rounded-2xl">
+                    <h4 class="font-bold text-blue-400 mb-2">Безопасно ли это?</h4>
+                    <p class="text-sm text-gray-400">Мы работаем через официальную платформу FunPay, что гарантирует безопасность ваших средств и сделки.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <input type="text" id="searchInput" placeholder="🔍 Поиск игры..." onkeyup="filterGames()" 
+               class="w-full glass p-5 rounded-2xl mb-10 border border-white/10 outline-none focus:border-blue-500 transition text-white">
+
+        <!-- Grid -->
+        <div id="gameGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-6 z-50">
+        <div class="glass p-10 rounded-3xl max-w-lg w-full border border-blue-500/30">
+            <h2 id="modalTitle" class="text-4xl font-black mb-4 text-blue-400"></h2>
+            <p id="modalDesc" class="text-gray-300 text-lg mb-8"></p>
+            <button onclick="document.getElementById('modal').style.display='none'" class="w-full py-4 bg-white/10 hover:bg-white/20 rounded-xl font-bold">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        const gameLibrary = {
+            "911 Operator": "Симулятор оператора экстренных служб. Управляйте вызовами и координируйте спецслужбы.",
+            "Among Us": "Космическая дедуктивная игра: выяви предателя среди экипажа.",
+            "BeamNG.drive": "Автосимулятор с лучшей физикой разрушений в мире.",
+            "Brick Rigs": "Песочница для создания техники из блоков.",
+            "Buckshot Roulette": "Напряженный хоррор: русская рулетка с дробовиком.",
+            "Bunny Guys!": "Хардкорный платформер с элементами паркура.",
+            "Car Mechanic Simulator 2018": "Полноценный симулятор автомеханика.",
+            "Castle Crashers": "Кооперативный аркадный экшен про рыцарей.",
+            "Cities: Skylines": "Лучший градостроительный симулятор.",
+            "Content Warning": "Снимайте хоррор-видео для хайпа и просмотров.",
+            "Cuphead": "Хардкорный экшен в стиле мультфильмов 30-х годов.",
+            "Euro Truck Simulator 2": "Симулятор дальнобойщика по всей Европе.",
+            "Garry's Mod": "Легендарная физическая песочница.",
+            "Hitman: World of Assassination": "Идеальный стелс-симулятор киллера.",
+            "Metro 2033 Redux": "Атмосферный постапокалипсис в метро.",
+            "Slime Rancher": "Уютная ферма с милыми инопланетными слаймами.",
+            "Teardown Multiplayer": "Полная разрушаемость мира для ограблений.",
+            "The Forest": "Симулятор выживания среди каннибалов.",
+            "Total War: Rome Remastered": "Масштабная стратегия об эпохе империи.",
+            "Workers & Resources: Soviet Republic": "Глубокий градостроительный симулятор.",
+            "СКУФ НА РЫБАЛКЕ": "Атмосферный симулятор для отдыха."
+        };
+
+        const allNames = Object.keys(gameLibrary);
+        const grid = document.getElementById('gameGrid');
+        
+        allNames.sort().forEach(name => {
+            grid.innerHTML += `
+                <div class="game-card glass p-6 rounded-2xl cursor-pointer text-center" onclick="openModal('${name}')">
+                    <h3 class="font-bold text-sm">${name}</h3>
+                </div>`;
+        });
+
+        function openModal(name) {
+            document.getElementById('modalTitle').innerText = name;
+            document.getElementById('modalDesc').innerText = gameLibrary[name] || "Описание временно недоступно.";
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function filterGames() {
+            let filter = document.getElementById('searchInput').value.toUpperCase();
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.style.display = card.innerText.toUpperCase().includes(filter) ? "" : "none";
+            });
+        }
+
+        // 3D Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0x1e3a8a, wireframe: true, transparent: true, opacity: 0.15 });
+        const torus = new THREE.Mesh(geometry, material);
+        scene.add(torus);
+        camera.position.z = 30;
+        function animate() { requestAnimationFrame(animate); torus.rotation.x += 0.002; torus.rotation.y += 0.005; renderer.render(scene, camera); }
+        animate();
+    </script>
+</body>
+</html>
